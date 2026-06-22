@@ -17,11 +17,34 @@
   }
   body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;padding:28px 20px 60px;}
   .wrap{max-width:1180px;margin:0 auto}
+  .hidden{display:none !important}
+
+  /* ---- Login ---- */
+  .login-screen{min-height:80vh;display:flex;align-items:center;justify-content:center;}
+  .login-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:34px 30px;width:100%;max-width:380px;}
+  .login-brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .login-brand .brand-icon{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#1F2A44);display:flex;align-items:center;justify-content:center;font-size:19px;}
+  .login-brand h1{font-family:var(--display);font-size:22px;font-weight:700;}
+  .login-brand .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  .field input{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:10px;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--surface-alt);}
+  .field input:focus{outline:none;border-color:var(--accent);background:#fff}
+  .login-btn{width:100%;padding:12px;border:none;border-radius:11px;background:var(--accent);color:#fff;font-family:var(--display);font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;}
+  .login-btn:hover{opacity:.92}.login-btn:disabled{opacity:.45;cursor:not-allowed}
+  .login-err{display:none;margin-top:14px;padding:10px 13px;border-radius:9px;background:var(--bad-soft);border:1px solid var(--bad);color:var(--bad);font-size:12.5px;}
+  .login-err.show{display:block}
+
+  /* ---- App ---- */
   .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap;}
   .brand-mark{display:flex;align-items:center;gap:12px;}
   .brand-icon{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#1F2A44);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
   h1{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-0.01em;color:var(--ink);line-height:1.1;}
   .brand-sub{font-size:13px;color:var(--muted);margin-top:2px}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .who{font-size:12.5px;color:var(--muted)}
+  .logout-btn{font-size:12.5px;font-weight:600;font-family:var(--sans);color:var(--ink-soft);background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 14px;cursor:pointer;}
+  .logout-btn:hover{border-color:var(--bad);color:var(--bad)}
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
   .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
   .stat-label{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
@@ -30,7 +53,6 @@
   @media(max-width:880px){.main-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;}
   .card-title{font-family:var(--display);font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
-  label.field-label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
   .dropzone{border:1.5px dashed var(--accent-line);border-radius:12px;padding:30px 18px;text-align:center;cursor:pointer;position:relative;transition:all .15s;background:var(--accent-soft);}
   .dropzone:hover,.dropzone.over{border-color:var(--accent);background:#E2EBFC}
   .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
@@ -63,17 +85,44 @@
   .icon-btn.danger:hover{border-color:var(--bad);color:var(--bad)}
   .icon-btn.copied{border-color:var(--good);color:var(--good)}
   footer{margin-top:32px;text-align:center;font-size:11.5px;color:var(--muted);}
+  .boot{min-height:70vh;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;}
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<!-- Initial loading state while we check the session -->
+<div class="wrap boot" id="bootView">Loading…</div>
+
+<!-- ===== LOGIN ===== -->
+<div class="wrap login-screen hidden" id="loginView">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon">🔗</div>
+      <div><h1>ImageLink</h1><div class="sub">Sign in to continue</div></div>
+    </div>
+    <div class="field">
+      <label for="lUser">Username</label>
+      <input id="lUser" type="text" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label for="lPass">Password</label>
+      <input id="lPass" type="password" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="login()">Sign in</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="wrap hidden" id="appView">
   <div class="topbar">
     <div class="brand-mark">
       <div class="brand-icon">🔗</div>
-      <div>
-        <h1>ImageLink</h1>
-        <div class="brand-sub">Image Management Panel</div>
-      </div>
+      <div><h1>ImageLink</h1><div class="brand-sub">Image Management Panel</div></div>
+    </div>
+    <div class="topbar-right">
+      <span class="who" id="whoami"></span>
+      <button class="logout-btn" onclick="logout()">Log out</button>
     </div>
   </div>
 
@@ -117,16 +166,80 @@
 let selectedFile = null;
 let history = JSON.parse(localStorage.getItem('iml_panel_history') || '[]');
 
-/* INIT */
-window.onload = () => {
-  // Backfill ids for any history items saved by the older version.
+/* ---- View switching ---- */
+function show(view){
+  document.getElementById('bootView').classList.add('hidden');
+  document.getElementById('loginView').classList.toggle('hidden', view !== 'login');
+  document.getElementById('appView').classList.toggle('hidden', view !== 'app');
+}
+
+/* ---- Auth ---- */
+async function checkAuth(){
+  try {
+    const res = await fetch('/api/me');                 // cookie sent automatically (same-origin)
+    if(res.ok){
+      const d = await res.json();
+      document.getElementById('whoami').textContent = 'Signed in as ' + d.user;
+      startApp();
+      show('app');
+      return;
+    }
+  } catch(_) {}
+  show('login');
+  document.getElementById('lUser').focus();
+}
+
+async function login(){
+  const btn  = document.getElementById('loginBtn');
+  const err  = document.getElementById('loginErr');
+  const user = document.getElementById('lUser').value.trim();
+  const pass = document.getElementById('lPass').value;
+  err.classList.remove('show');
+  if(!user || !pass){ err.textContent='Enter your username and password.'; err.classList.add('show'); return; }
+
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if(res.status === 429) throw new Error('Too many attempts — wait a minute and try again.');
+    if(!res.ok) throw new Error(d.error || ('HTTP ' + res.status));
+    document.getElementById('lPass').value = '';
+    await checkAuth();
+  } catch(e){
+    err.textContent = e.message;
+    err.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+async function logout(){
+  try { await fetch('/api/logout', { method: 'POST' }); } catch(_) {}
+  show('login');
+  document.getElementById('lUser').focus();
+}
+
+/* Allow Enter to submit the login form */
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !document.getElementById('loginView').classList.contains('hidden')) login();
+});
+
+/* ---- App boot (runs once authenticated) ---- */
+let appStarted = false;
+function startApp(){
+  if(appStarted) return; appStarted = true;
   history = history.map(h => (h && h.id) ? h : Object.assign({ id: genId() }, h));
   renderHistory(); renderStats(); setupDrop();
-};
+}
+window.onload = checkAuth;
 
 function genId(){ return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
 
-/* FILE INPUT */
+/* ---- File input ---- */
 function setupDrop(){
   const dz = document.getElementById('dropzone');
   dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
@@ -151,11 +264,8 @@ function processFile(file){
 }
 function checkGenBtn(){ document.getElementById('genBtn').disabled = !selectedFile; }
 
-/* INFO BAR */
-function resetInfo(){
-  const bar = document.getElementById('infoBar');
-  bar.classList.remove('show','success','error');
-}
+/* ---- Info bar ---- */
+function resetInfo(){ document.getElementById('infoBar').classList.remove('show','success','error'); }
 function showInfo(msg, type='info'){
   const bar = document.getElementById('infoBar');
   bar.textContent = msg;
@@ -165,49 +275,33 @@ function showInfo(msg, type='info'){
   bar.classList.add('show');
 }
 
-/* CLIPBOARD — works on plain HTTP too, and never throws. */
+/* ---- Clipboard (works on plain HTTP too, never throws) ---- */
 async function copyText(text){
   try {
-    if (navigator.clipboard && window.isSecureContext){
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
+    if (navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); return true; }
   } catch(_) {}
-  // Fallback for non-secure (HTTP) contexts.
   try {
     const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return ok;
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
   } catch(_) { return false; }
 }
 
-/* GENERATE */
+/* ---- Generate ---- */
 async function generate(){
   if(!selectedFile){ showInfo('Please select an image first.', 'error'); return; }
-
   const btn = document.getElementById('genBtn');
-  btn.disabled = true;
-  showInfo('⏳ Uploading...');
-
+  btn.disabled = true; showInfo('⏳ Uploading...');
   try {
-    const form = new FormData();
-    form.append('file', selectedFile);
-
+    const form = new FormData(); form.append('file', selectedFile);
     const res  = await fetch('/api/upload', { method: 'POST', body: form });
+    if(res.status === 401){ showInfo('Session expired — please sign in again.', 'error'); setTimeout(() => show('login'), 900); return; }
     const data = await res.json().catch(() => ({}));
-
     if(!res.ok || data.error) throw new Error(data.error || ('HTTP ' + res.status));
-
     const copied = await copyText(data.url);
     showInfo((copied ? '✅ Done! URL copied to clipboard → ' : '✅ Uploaded → ') + data.url, 'success');
     addHistory({ id: genId(), url: data.url, type: 'file', time: Date.now() });
-
   } catch(e){
     showInfo('❌ Upload failed: ' + e.message, 'error');
   } finally {
@@ -215,7 +309,7 @@ async function generate(){
   }
 }
 
-/* HISTORY */
+/* ---- History ---- */
 function addHistory(item){
   history.unshift(item);
   if(history.length > 50) history = history.slice(0, 50);
@@ -226,83 +320,49 @@ function renderHistory(){
   const empty = document.getElementById('histEmpty');
   const list  = document.getElementById('histList');
   if(!history.length){ empty.style.display='block'; list.style.display='none'; list.innerHTML=''; return; }
-  empty.style.display='none'; list.style.display='flex';
-  list.innerHTML = '';
-
+  empty.style.display='none'; list.style.display='flex'; list.innerHTML='';
   history.forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'hist-row';
-
-    const thumb = document.createElement('img');
-    thumb.className = 'hist-thumb';
-    thumb.loading = 'lazy';
-    thumb.src = item.url;                       // src assignment, not HTML — safe
-    thumb.addEventListener('error', () => { thumb.style.opacity = 0.15; });
-
-    const body = document.createElement('div');
-    body.className = 'hist-body';
-
-    const url = document.createElement('div');
-    url.className = 'hist-url';
-    url.textContent = item.url;                 // textContent — no HTML injection
-
-    const meta = document.createElement('div');
-    meta.className = 'hist-meta';
-    const badge = document.createElement('span');
-    badge.className = 'hist-badge file';
+    const row = document.createElement('div'); row.className = 'hist-row';
+    const thumb = document.createElement('img'); thumb.className='hist-thumb'; thumb.loading='lazy';
+    thumb.src = item.url; thumb.addEventListener('error', () => { thumb.style.opacity = 0.15; });
+    const body = document.createElement('div'); body.className='hist-body';
+    const url = document.createElement('div'); url.className='hist-url'; url.textContent = item.url;
+    const meta = document.createElement('div'); meta.className='hist-meta';
+    const badge = document.createElement('span'); badge.className='hist-badge file';
     badge.textContent = item.type === 'url' ? 'URL' : 'File';
-    const time = document.createElement('span');
-    time.className = 'hist-time';
-    time.textContent = timeAgo(item.time);
-    meta.append(badge, time);
-    body.append(url, meta);
-
-    const actions = document.createElement('div');
-    actions.className = 'hist-actions';
-
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'icon-btn'; copyBtn.title = 'Copy'; copyBtn.textContent = '⧉';
+    const time = document.createElement('span'); time.className='hist-time'; time.textContent = timeAgo(item.time);
+    meta.append(badge, time); body.append(url, meta);
+    const actions = document.createElement('div'); actions.className='hist-actions';
+    const copyBtn = document.createElement('button'); copyBtn.className='icon-btn'; copyBtn.title='Copy'; copyBtn.textContent='⧉';
     copyBtn.addEventListener('click', () => copyHist(copyBtn, item.url));
-
-    const openBtn = document.createElement('button');
-    openBtn.className = 'icon-btn'; openBtn.title = 'Open'; openBtn.textContent = '↗';
+    const openBtn = document.createElement('button'); openBtn.className='icon-btn'; openBtn.title='Open'; openBtn.textContent='↗';
     openBtn.addEventListener('click', () => window.open(item.url, '_blank', 'noopener'));
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'icon-btn danger'; delBtn.title = 'Remove'; delBtn.textContent = '✕';
+    const delBtn = document.createElement('button'); delBtn.className='icon-btn danger'; delBtn.title='Remove'; delBtn.textContent='✕';
     delBtn.addEventListener('click', () => removeHist(item.id));
-
     actions.append(copyBtn, openBtn, delBtn);
-    row.append(thumb, body, actions);
-    list.appendChild(row);
+    row.append(thumb, body, actions); list.appendChild(row);
   });
 }
 async function copyHist(btn, url){
   const ok = await copyText(url);
-  if(ok){
-    btn.textContent = '✓'; btn.classList.add('copied');
-    setTimeout(() => { btn.textContent='⧉'; btn.classList.remove('copied'); }, 1400);
-  }
+  if(ok){ btn.textContent='✓'; btn.classList.add('copied'); setTimeout(() => { btn.textContent='⧉'; btn.classList.remove('copied'); }, 1400); }
 }
 function removeHist(id){
-  history = history.filter(h => h.id !== id);   // stable id, not array index
+  history = history.filter(h => h.id !== id);
   localStorage.setItem('iml_panel_history', JSON.stringify(history));
   renderHistory(); renderStats();
 }
 function clearHistory(){
   if(!history.length) return;
   if(!confirm('Clear all upload history?')) return;
-  history = [];
-  localStorage.removeItem('iml_panel_history');
-  renderHistory(); renderStats();
+  history = []; localStorage.removeItem('iml_panel_history'); renderHistory(); renderStats();
 }
 
-/* STATS */
+/* ---- Stats ---- */
 function renderStats(){
   document.getElementById('statTotal').textContent = history.length;
   const today = new Date().toDateString();
-  const todayCount = history.filter(h => new Date(h.time).toDateString() === today).length;
-  document.getElementById('statToday').textContent = todayCount;
+  document.getElementById('statToday').textContent = history.filter(h => new Date(h.time).toDateString() === today).length;
   document.getElementById('statLast').textContent = history.length ? timeAgo(history[0].time) : '—';
 }
 function timeAgo(ts){

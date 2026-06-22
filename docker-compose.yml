@@ -8,6 +8,10 @@ services:
     build: ./backend
     expose:
       - "3001"
+    # Secrets (SESSION_SECRET, ADMIN_USER, ADMIN_PASSWORD...) live in .env, which is
+    # gitignored and created directly on the server. See .env.example.
+    env_file:
+      - .env
     environment:
       # Set this to your public origin so returned links can't be Host-header poisoned.
       # When you move to the subdomain, change this to e.g. https://img.yourdomain.com
