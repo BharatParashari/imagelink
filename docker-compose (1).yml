@@ -1,0 +1,46 @@
+# Pinning the project name fixes the volume name (imagelink_uploads_data)
+# no matter what folder git clones into — so your existing images are reused.
+name: imagelink
+
+services:
+
+  backend:
+    build: ./backend
+    expose:
+      - "3001"
+    environment:
+      # Set this to your public origin so returned links can't be Host-header poisoned.
+      # When you move to the subdomain, change this to e.g. https://img.yourdomain.com
+      - PUBLIC_BASE_URL=http://168.231.118.157:8080
+      # Auto-delete uploads older than N days. 0 = keep forever.
+      - RETENTION_DAYS=0
+    volumes:
+      - uploads_data:/uploads
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      # nginx only needs to read these — mount read-only.
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend:/usr/share/nginx/html:ro
+      - uploads_data:/uploads:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  uploads_data:

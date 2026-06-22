@@ -1,0 +1,14 @@
+# dependencies (rebuilt from package-lock.json)
+node_modules/
+
+# uploaded images live in a Docker volume, never in git
+uploads/
+
+# secrets / local overrides
+.env
+*.env
+nginx/.htpasswd
+
+# backups
+*.tar.gz
+*-backup*/
