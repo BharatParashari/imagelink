@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ImageLink — Image Management Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#F6F7FB;--surface:#FFFFFF;--surface-alt:#F1F3F9;
+    --ink:#1F2A44;--ink-soft:#44516B;--muted:#8089A3;--border:#E3E7F0;
+    --accent:#2E5AAC;--accent-soft:#EAF0FC;--accent-line:#C7D7F4;
+    --good:#2F8F5B;--good-soft:#EAF7EF;--bad:#C0392B;--bad-soft:#FBEAE8;
+    --display:'Space Grotesk',sans-serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+  }
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;padding:28px 20px 60px;}
+  .wrap{max-width:1180px;margin:0 auto}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap;}
+  .brand-mark{display:flex;align-items:center;gap:12px;}
+  .brand-icon{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#1F2A44);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+  h1{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-0.01em;color:var(--ink);line-height:1.1;}
+  .brand-sub{font-size:13px;color:var(--muted);margin-top:2px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+  .stat-label{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .stat-value{font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);display:flex;align-items:baseline;gap:8px;}
+  .main-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:20px;align-items:start;}
+  @media(max-width:880px){.main-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;}
+  .card-title{font-family:var(--display);font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+  label.field-label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  .dropzone{border:1.5px dashed var(--accent-line);border-radius:12px;padding:30px 18px;text-align:center;cursor:pointer;position:relative;transition:all .15s;background:var(--accent-soft);}
+  .dropzone:hover,.dropzone.over{border-color:var(--accent);background:#E2EBFC}
+  .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .dz-icon{font-size:28px;margin-bottom:6px}.dz-text{font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+  .dz-text strong{color:var(--ink)}.dz-file{margin-top:9px;font-size:12px;color:var(--accent);font-family:var(--mono)}
+  .preview{margin-top:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);display:none}
+  .preview.show{display:block}.preview img{width:100%;max-height:170px;object-fit:contain;background:var(--surface-alt);display:block}
+  .gen-btn{margin-top:18px;width:100%;padding:13px;border:none;border-radius:11px;background:var(--accent);color:#fff;font-family:var(--display);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .08s;}
+  .gen-btn:hover{opacity:.9}.gen-btn:active{transform:scale(.99)}.gen-btn:disabled{opacity:.35;cursor:not-allowed}
+  .info-bar{display:none;margin-top:14px;padding:10px 14px;border-radius:10px;background:var(--accent-soft);border:1px solid var(--accent-line);color:var(--accent);font-size:12.5px;word-break:break-all;}
+  .info-bar.show{display:block}
+  .info-bar.success{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+  .info-bar.error{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+  .hist-clear{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:var(--sans);font-weight:500;}
+  .hist-clear:hover{color:var(--bad)}
+  .hist-empty{text-align:center;padding:46px 20px;color:var(--muted);font-size:13px;line-height:1.7;}
+  .hist-empty .ic{font-size:30px;display:block;margin-bottom:10px}
+  .hist-list{display:flex;flex-direction:column;gap:9px;max-height:560px;overflow-y:auto;padding-right:4px}
+  .hist-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface);}
+  .hist-thumb{width:46px;height:46px;border-radius:8px;object-fit:cover;background:var(--surface-alt);border:1px solid var(--border);flex-shrink:0;}
+  .hist-body{flex:1;min-width:0}
+  .hist-url{font-family:var(--mono);font-size:11.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hist-meta{display:flex;align-items:center;gap:7px;margin-top:4px}
+  .hist-badge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:20px;}
+  .hist-badge.file{background:var(--accent-soft);color:var(--accent)}
+  .hist-time{font-size:11px;color:var(--muted)}
+  .hist-actions{display:flex;gap:6px;flex-shrink:0}
+  .icon-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;}
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .icon-btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+  .icon-btn.copied{border-color:var(--good);color:var(--good)}
+  footer{margin-top:32px;text-align:center;font-size:11.5px;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand-mark">
+      <div class="brand-icon">🔗</div>
+      <div>
+        <h1>ImageLink</h1>
+        <div class="brand-sub">Image Management Panel</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">Total Uploads</div><div class="stat-value" id="statTotal">0</div></div>
+    <div class="stat-card"><div class="stat-label">Uploaded Today</div><div class="stat-value" id="statToday">0</div></div>
+    <div class="stat-card"><div class="stat-label">Last Upload</div><div class="stat-value" id="statLast" style="font-size:18px">—</div></div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title">Upload an image</div>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/*" onchange="onFile(this)" />
+        <div class="dz-icon">🖼️</div>
+        <div class="dz-text"><strong>Click to choose</strong> or drag &amp; drop<br>PNG, JPG, GIF, WEBP</div>
+        <div class="dz-file" id="dzFile"></div>
+      </div>
+      <div class="preview" id="previewFile"><img id="previewFileImg" src="" alt="" /></div>
+      <button class="gen-btn" id="genBtn" onclick="generate()" disabled>Generate URL</button>
+      <div class="info-bar" id="infoBar"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Upload History
+        <button class="hist-clear" onclick="clearHistory()">Clear all</button>
+      </div>
+      <div id="histWrap">
+        <div class="hist-empty" id="histEmpty"><span class="ic">📭</span>No uploads yet.<br>Generate your first link and it will show up here.</div>
+        <div class="hist-list" id="histList" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>ImageLink — Image Management Panel</footer>
+</div>
+
+<script>
+/* STATE */
+let selectedFile = null;
+let history = JSON.parse(localStorage.getItem('iml_panel_history') || '[]');
+
+/* INIT */
+window.onload = () => {
+  // Backfill ids for any history items saved by the older version.
+  history = history.map(h => (h && h.id) ? h : Object.assign({ id: genId() }, h));
+  renderHistory(); renderStats(); setupDrop();
+};
+
+function genId(){ return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
+
+/* FILE INPUT */
+function setupDrop(){
+  const dz = document.getElementById('dropzone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('over');
+    const f = e.dataTransfer.files[0];
+    if(f && f.type.startsWith('image/')) processFile(f);
+  });
+}
+function onFile(input){ if(input.files[0]) processFile(input.files[0]); }
+function processFile(file){
+  selectedFile = file;
+  document.getElementById('dzFile').textContent = file.name;
+  const r = new FileReader();
+  r.onload = e => {
+    document.getElementById('previewFileImg').src = e.target.result;
+    document.getElementById('previewFile').classList.add('show');
+  };
+  r.readAsDataURL(file);
+  resetInfo(); checkGenBtn();
+}
+function checkGenBtn(){ document.getElementById('genBtn').disabled = !selectedFile; }
+
+/* INFO BAR */
+function resetInfo(){
+  const bar = document.getElementById('infoBar');
+  bar.classList.remove('show','success','error');
+}
+function showInfo(msg, type='info'){
+  const bar = document.getElementById('infoBar');
+  bar.textContent = msg;
+  bar.classList.remove('success','error');
+  if(type === 'success') bar.classList.add('success');
+  if(type === 'error')   bar.classList.add('error');
+  bar.classList.add('show');
+}
+
+/* CLIPBOARD — works on plain HTTP too, and never throws. */
+async function copyText(text){
+  try {
+    if (navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch(_) {}
+  // Fallback for non-secure (HTTP) contexts.
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch(_) { return false; }
+}
+
+/* GENERATE */
+async function generate(){
+  if(!selectedFile){ showInfo('Please select an image first.', 'error'); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  showInfo('⏳ Uploading...');
+
+  try {
+    const form = new FormData();
+    form.append('file', selectedFile);
+
+    const res  = await fetch('/api/upload', { method: 'POST', body: form });
+    const data = await res.json().catch(() => ({}));
+
+    if(!res.ok || data.error) throw new Error(data.error || ('HTTP ' + res.status));
+
+    const copied = await copyText(data.url);
+    showInfo((copied ? '✅ Done! URL copied to clipboard → ' : '✅ Uploaded → ') + data.url, 'success');
+    addHistory({ id: genId(), url: data.url, type: 'file', time: Date.now() });
+
+  } catch(e){
+    showInfo('❌ Upload failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* HISTORY */
+function addHistory(item){
+  history.unshift(item);
+  if(history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('iml_panel_history', JSON.stringify(history));
+  renderHistory(); renderStats();
+}
+function renderHistory(){
+  const empty = document.getElementById('histEmpty');
+  const list  = document.getElementById('histList');
+  if(!history.length){ empty.style.display='block'; list.style.display='none'; list.innerHTML=''; return; }
+  empty.style.display='none'; list.style.display='flex';
+  list.innerHTML = '';
+
+  history.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'hist-row';
+
+    const thumb = document.createElement('img');
+    thumb.className = 'hist-thumb';
+    thumb.loading = 'lazy';
+    thumb.src = item.url;                       // src assignment, not HTML — safe
+    thumb.addEventListener('error', () => { thumb.style.opacity = 0.15; });
+
+    const body = document.createElement('div');
+    body.className = 'hist-body';
+
+    const url = document.createElement('div');
+    url.className = 'hist-url';
+    url.textContent = item.url;                 // textContent — no HTML injection
+
+    const meta = document.createElement('div');
+    meta.className = 'hist-meta';
+    const badge = document.createElement('span');
+    badge.className = 'hist-badge file';
+    badge.textContent = item.type === 'url' ? 'URL' : 'File';
+    const time = document.createElement('span');
+    time.className = 'hist-time';
+    time.textContent = timeAgo(item.time);
+    meta.append(badge, time);
+    body.append(url, meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'hist-actions';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'icon-btn'; copyBtn.title = 'Copy'; copyBtn.textContent = '⧉';
+    copyBtn.addEventListener('click', () => copyHist(copyBtn, item.url));
+
+    const openBtn = document.createElement('button');
+    openBtn.className = 'icon-btn'; openBtn.title = 'Open'; openBtn.textContent = '↗';
+    openBtn.addEventListener('click', () => window.open(item.url, '_blank', 'noopener'));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'icon-btn danger'; delBtn.title = 'Remove'; delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => removeHist(item.id));
+
+    actions.append(copyBtn, openBtn, delBtn);
+    row.append(thumb, body, actions);
+    list.appendChild(row);
+  });
+}
+async function copyHist(btn, url){
+  const ok = await copyText(url);
+  if(ok){
+    btn.textContent = '✓'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent='⧉'; btn.classList.remove('copied'); }, 1400);
+  }
+}
+function removeHist(id){
+  history = history.filter(h => h.id !== id);   // stable id, not array index
+  localStorage.setItem('iml_panel_history', JSON.stringify(history));
+  renderHistory(); renderStats();
+}
+function clearHistory(){
+  if(!history.length) return;
+  if(!confirm('Clear all upload history?')) return;
+  history = [];
+  localStorage.removeItem('iml_panel_history');
+  renderHistory(); renderStats();
+}
+
+/* STATS */
+function renderStats(){
+  document.getElementById('statTotal').textContent = history.length;
+  const today = new Date().toDateString();
+  const todayCount = history.filter(h => new Date(h.time).toDateString() === today).length;
+  document.getElementById('statToday').textContent = todayCount;
+  document.getElementById('statLast').textContent = history.length ? timeAgo(history[0].time) : '—';
+}
+function timeAgo(ts){
+  const d = Date.now()-ts, m = Math.floor(d/60000);
+  if(m<1) return 'just now';
+  if(m<60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if(h<24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+}
+</script>
+</body>
+</html>
